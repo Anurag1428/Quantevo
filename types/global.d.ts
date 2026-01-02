@@ -215,6 +215,75 @@ declare global {
         threshold: number;
         changePercent?: number;
     };
+
+    type StrategyCondition = {
+        type: 'price' | 'ma_cross' | 'rsi' | 'volume' | 'sentiment';
+        symbol: string;
+        operator: '>' | '<' | '==' | 'cross_above' | 'cross_below';
+        value: number;
+        period?: number; // for MA/RSI
+        description: string;
+    };
+
+    type StrategyPerformance = {
+        totalTrades: number;
+        winRate: number; // percentage 0-100
+        avgReturn: number; // percentage
+        maxDrawdown: number; // percentage
+        sharpeRatio: number;
+        profitFactor: number; // win_sum / loss_sum
+        bestTrade: number;
+        worstTrade: number;
+        backtestedFrom: Date;
+        backtestedTo: Date;
+    };
+
+    type Strategy = {
+        id: string;
+        userId: string;
+        author: {
+            name: string;
+            email?: string;
+            avatar?: string;
+        };
+        title: string;
+        description: string;
+        conditions: StrategyCondition[];
+        performance: StrategyPerformance;
+        isPublic: boolean;
+        subscribers: number;
+        reputation: number; // 0-100 based on feedback
+        createdAt: Date;
+        updatedAt: Date;
+        tags: string[];
+        riskLevel: 'low' | 'medium' | 'high';
+    };
+
+    type StrategySubscription = {
+        id: string;
+        userId: string;
+        strategyId: string;
+        subscribedAt: Date;
+        status: 'active' | 'paused' | 'cancelled';
+    };
+
+    type StrategyReview = {
+        id: string;
+        strategyId: string;
+        userId: string;
+        rating: number; // 1-5
+        comment: string;
+        createdAt: Date;
+    };
+
+    type CreateStrategyInput = {
+        title: string;
+        description: string;
+        conditions: StrategyCondition[];
+        riskLevel: 'low' | 'medium' | 'high';
+        tags: string[];
+        isPublic: boolean;
+    };
 }
 
 export {};

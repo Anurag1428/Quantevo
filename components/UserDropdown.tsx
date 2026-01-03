@@ -22,7 +22,7 @@ const UserDropdown = () => {
       router.push("/sign-in")
     }
 
-    const user = { name: "John", email: 'contact@pussy.com' } // Replace with actual user data
+    const user = { name: "John", email: 'user@example.com' } // Replace with actual user data
 
   return (
 <DropdownMenu>

@@ -338,3 +338,41 @@ export const WATCHLIST_TABLE_HEADER = [
     'Alert',
     'Action',
 ];
+
+/**
+ * Smart Watchlist Suggestions based on user preferences
+ * Maps investment goals & risk tolerance to recommended stock symbols
+ */
+export const STOCK_SUGGESTIONS = {
+    Growth: {
+        Low: ['MSFT', 'GOOGL', 'JPM', 'V'], // Blue chips with growth
+        Medium: ['AAPL', 'AMZN', 'NVDA', 'META'], // Growth leaders
+        High: ['TSLA', 'PLTR', 'COIN', 'RIVN'], // High-growth, high-risk
+    },
+    Income: {
+        Low: ['JNJ', 'PG', 'KO', 'MCD'], // Dividend aristocrats
+        Medium: ['IBM', 'T', 'PEP', 'WMT'], // Stable dividend payers
+        High: ['MSTR', 'REIT', 'BDC', 'MLPs'], // High-yield but risky
+    },
+    Balanced: {
+        Low: ['VOO', 'VTI', 'VFIAX', 'SPLG'], // Index funds
+        Medium: ['MSFT', 'JPM', 'WMT', 'UNH'], // Mix of growth & stability
+        High: ['AAPL', 'AMZN', 'META', 'TSLA'], // Growth + stability
+    },
+    Conservative: {
+        Low: ['BRK.B', 'JNJ', 'PG', 'XOM'], // Large-cap blue chips
+        Medium: ['MSFT', 'UNH', 'V', 'CVX'], // Quality dividend payers
+        High: ['MO', 'VICI', 'STAG', 'O'], // High-yield bonds & REITs
+    },
+};
+
+/**
+ * Industry-specific stock recommendations
+ */
+export const INDUSTRY_STOCKS = {
+    Technology: ['AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'INTC', 'ADBE', 'CRM'],
+    Healthcare: ['JNJ', 'UNH', 'PFE', 'ABBV', 'MRK', 'LLY', 'AZN', 'GILD'],
+    Finance: ['JPM', 'BAC', 'WFC', 'GS', 'MS', 'BLK', 'SCHW', 'CME'],
+    Energy: ['XOM', 'CVX', 'COP', 'SLB', 'MPC', 'PSX', 'HES', 'EOG'],
+    'Consumer Goods': ['PG', 'KO', 'PEP', 'MO', 'PM', 'EL', 'NKE', 'COST'],
+};

@@ -11,11 +11,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { signUpWithEmail } from "@/lib/actions/auth.actions";
+import { Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 
 const SignUp = () => {
   const router = useRouter();
   const [formError, setFormError] = useState<string>('');
   const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('weak');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const {
     register,
@@ -23,7 +27,8 @@ const SignUp = () => {
     control,
     formState: { errors, isSubmitting },
     watch,
-  } = useForm<SignUpFormData>({
+    getValues,
+  } = useForm<SignUpFormData & { confirmPassword?: string; termsAccepted?: boolean }>({
       defaultValues: {
       fullName: '',
       email: '',
@@ -32,11 +37,15 @@ const SignUp = () => {
       investmentGoals: 'Growth',
       riskTolerance: 'Medium',
       preferredIndustry: 'Technology',
+      confirmPassword: '',
+      termsAccepted: false,
       },
       mode: 'onBlur'
   });
 
   const password = watch('password');
+  const confirmPassword = watch('confirmPassword');
+  const passwordsMatch = password === confirmPassword && password.length > 0;
 
   // Evaluate password strength
   const evaluatePasswordStrength = (pwd: string) => {
@@ -64,10 +73,28 @@ const SignUp = () => {
     evaluatePasswordStrength(password);
   }
 
-  const onSubmit = async (data: SignUpFormData) => {
+  const onSubmit = async (data: SignUpFormData & { confirmPassword?: string; termsAccepted?: boolean }) => {
     setFormError('');
+    
+    if (!termsAccepted) {
+      setFormError('You must accept the terms and conditions to continue.');
+      toast.error('Terms not accepted', {
+        description: 'Please accept the terms and conditions.',
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFormError('Passwords do not match.');
+      toast.error('Password mismatch', {
+        description: 'Please ensure both passwords are identical.',
+      });
+      return;
+    }
+
     try {
-      const result = await signUpWithEmail(data);
+      const { confirmPassword, termsAccepted, ...submitData } = data;
+      const result = await signUpWithEmail(submitData as SignUpFormData);
       if (result?.success) {
         toast.success('Account created successfully!', {
           description: 'Redirecting to dashboard...',
@@ -92,10 +119,14 @@ const SignUp = () => {
 
   return (
     <>
-      <h1 className="form-title">Sign Up & Personalize</h1>
+      <div className="mb-6">
+        <h1 className="form-title">Sign Up & Personalize</h1>
+        <p className="text-sm text-gray-600 mt-2">Join thousands of smart investors. Takes less than 2 minutes.</p>
+      </div>
 
       {formError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex gap-2 items-start">
+          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
           {formError}
         </div>
       )}
@@ -115,7 +146,7 @@ const SignUp = () => {
 
         <InputField
             name="email"
-            label="Email"
+            label="Email Address"
             placeholder="contact@progamii.com"
             register={register}
             error={errors.email}
@@ -129,18 +160,30 @@ const SignUp = () => {
         />
 
         <div className="space-y-2">
-          <InputField
-              name="password"
-              label="Password"
+          <label className="text-sm font-medium text-gray-700">Password</label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
               placeholder="Enter a strong password"
-              type="password"
-              register={register}
-              error={errors.password}
-              validation={{ 
-                required: "Password is required", 
+              {...register('password', {
+                required: "Password is required",
                 minLength: { value: 8, message: "Minimum 8 characters required" }
-              }}
-          />
+              })}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 pr-10 ${
+                errors.password ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+          )}
           
           {password && (
             <div className="space-y-2">
@@ -154,9 +197,41 @@ const SignUp = () => {
                 passwordStrength === 'medium' ? 'text-yellow-600' : 
                 'text-green-600'
               }`}>
-                Password Strength: {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
+                Strength: {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
               </p>
             </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Re-enter your password"
+              {...register('confirmPassword', {
+                required: "Please confirm your password",
+              })}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 pr-10 ${
+                errors.confirmPassword ? 'border-red-500' : confirmPassword && !passwordsMatch ? 'border-red-500' : confirmPassword && passwordsMatch ? 'border-green-500' : 'border-gray-300'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {confirmPassword && passwordsMatch && (
+            <div className="flex items-center gap-1 text-green-600 text-xs">
+              <CheckCircle className="w-4 h-4" />
+              Passwords match
+            </div>
+          )}
+          {confirmPassword && !passwordsMatch && (
+            <p className="text-red-500 text-xs">Passwords do not match</p>
           )}
         </div>
 
@@ -198,7 +273,23 @@ const SignUp = () => {
             required
         />
 
-        <Button type="submit" className="yellow-btn w-full mt-6 h-10 font-semibold" disabled={isSubmitting}>
+        <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            className="mt-1 w-4 h-4 cursor-pointer accent-yellow-500"
+          />
+          <label className="text-sm text-gray-700 cursor-pointer">
+            I agree to the <a href="/terms" className="text-yellow-600 hover:underline font-semibold">Terms & Conditions</a> and <a href="/privacy" className="text-yellow-600 hover:underline font-semibold">Privacy Policy</a>
+          </label>
+        </div>
+
+        <Button 
+          type="submit" 
+          className={`yellow-btn w-full mt-6 h-10 font-semibold transition-all ${!termsAccepted ? 'opacity-50 cursor-not-allowed' : ''}`} 
+          disabled={isSubmitting || !termsAccepted}
+        >
           {isSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>

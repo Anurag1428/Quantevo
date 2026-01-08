@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import NavItems from "./NavItems"
 import UserDropdown from "./UserDropdown"
+import { NotificationCenter } from "./NotificationCenter"
 
 export const Header = () => {
   return (
@@ -14,7 +15,10 @@ export const Header = () => {
                 <NavItems />
             </nav>
 
-            <UserDropdown /> 
+            <div className="flex items-center gap-4">
+                <NotificationCenter />
+                <UserDropdown />
+            </div>
         </div>
     </header>
   )

@@ -20,15 +20,15 @@ export const AlertCard = ({
   const getPriorityColor = (priority: AlertPriority) => {
     switch (priority) {
       case 'critical':
-        return 'border-l-red-500 bg-red-900/20';
+        return 'border-l-red-500 glass-dark border-white/20 backdrop-blur-xl';
       case 'high':
-        return 'border-l-orange-500 bg-orange-900/20';
+        return 'border-l-orange-500 glass-dark border-white/20 backdrop-blur-xl';
       case 'medium':
-        return 'border-l-yellow-500 bg-yellow-900/20';
+        return 'border-l-yellow-500 glass-dark border-white/20 backdrop-blur-xl';
       case 'low':
-        return 'border-l-blue-500 bg-blue-900/20';
+        return 'border-l-blue-500 glass-dark border-white/20 backdrop-blur-xl';
       default:
-        return 'border-l-gray-500 bg-gray-900/20';
+        return 'border-l-gray-500 glass-dark border-white/20 backdrop-blur-xl';
     }
   };
 
@@ -64,7 +64,7 @@ export const AlertCard = ({
 
   return (
     <div
-      className={`border-l-4 p-6 rounded-lg transition-all hover:shadow-lg ${getPriorityColor(
+      className={`border-l-4 p-6 rounded-lg transition-all hover:shadow-lg glass-hover ${getPriorityColor(
         alert.priority
       )}`}
     >

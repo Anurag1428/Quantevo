@@ -36,7 +36,7 @@ const StrategyCard: React.FC<StrategyCardProps> = ({
   const isPositiveReturn = strategy.performance.avgReturn >= 0;
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 flex flex-col h-full">
+    <div className="glass-card glass-hover rounded-lg p-6 flex flex-col h-full">
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-start justify-between mb-3">

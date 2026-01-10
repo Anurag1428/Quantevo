@@ -30,7 +30,7 @@ export const MarketDataCard = ({
   );
 
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors cursor-pointer">
+    <div className="glass-card glass-hover rounded-lg p-4 cursor-pointer">
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="text-lg font-semibold text-white">{symbol}</h3>

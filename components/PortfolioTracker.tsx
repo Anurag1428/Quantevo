@@ -54,7 +54,7 @@ export const PortfolioTracker = ({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+        <div className="glass-card glass-hover rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Total Value</p>
@@ -64,7 +64,7 @@ export const PortfolioTracker = ({
           </div>
         </div>
 
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+        <div className="glass-card glass-hover rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Total Gain</p>
@@ -80,7 +80,7 @@ export const PortfolioTracker = ({
           </div>
         </div>
 
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+        <div className="glass-card glass-hover rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Gain %</p>
@@ -92,7 +92,7 @@ export const PortfolioTracker = ({
           </div>
         </div>
 
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+        <div className="glass-card glass-hover rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Holdings</p>
@@ -104,7 +104,7 @@ export const PortfolioTracker = ({
       </div>
 
       {/* Portfolio Value Chart */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+      <div className="glass-card glass-hover rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Portfolio Value Over Time</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={portfolioData}>
@@ -133,22 +133,22 @@ export const PortfolioTracker = ({
       </div>
 
       {/* Holdings Table */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+      <div className="glass-card glass-hover rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Your Holdings</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left py-3 px-4 text-gray-400 font-semibold">Symbol</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-semibold">Quantity</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-semibold">Value</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-semibold">Change</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-semibold">% of Portfolio</th>
+              <tr className="border-b border-white/10">
+                <th className="text-left py-3 px-4 text-gray-300 font-semibold">Symbol</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-semibold">Quantity</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-semibold">Value</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-semibold">Change</th>
+                <th className="text-left py-3 px-4 text-gray-300 font-semibold">% of Portfolio</th>
               </tr>
             </thead>
             <tbody>
               {holdings.map((holding) => (
-                <tr key={holding.symbol} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <tr key={holding.symbol} className="border-b border-white/10 hover:bg-white/10 transition-colors">
                   <td className="py-3 px-4 text-white font-semibold">{holding.symbol}</td>
                   <td className="py-3 px-4 text-gray-300">{holding.quantity.toFixed(2)}</td>
                   <td className="py-3 px-4 text-gray-300">{formatCurrency(holding.value)}</td>

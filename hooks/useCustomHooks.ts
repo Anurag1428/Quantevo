@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface UseAsyncState<T> {
   data: T | null;
@@ -38,7 +38,7 @@ export const useAsync = <T,>(
 /**
  * Hook for managing form state with validation
  */
-export const useForm = <T extends Record<string, any>>(
+export const useForm = <T extends Record<string, unknown>>(
   initialValues: T,
   onSubmit: (values: T) => void | Promise<void>
 ) => {
@@ -82,7 +82,7 @@ export const useForm = <T extends Record<string, any>>(
     setTouched({});
   }, [initialValues]);
 
-  const setFieldValue = useCallback((field: keyof T, value: any) => {
+  const setFieldValue = useCallback((field: keyof T, value: unknown) => {
     setValues((prev) => ({ ...prev, [field]: value }));
   }, []);
 
@@ -139,8 +139,8 @@ export const useLocalStorage = <T,>(key: string, initialValue: T) => {
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(key, JSON.stringify(valueToStore));
         }
-      } catch {
-        console.error(`Error setting localStorage key "${key}":`, arguments);
+      } catch (error) {
+        console.error(`Error setting localStorage key "${key}":`, error);
       }
     },
     [key, storedValue]
@@ -153,7 +153,7 @@ export const useLocalStorage = <T,>(key: string, initialValue: T) => {
  * Hook for tracking previous value
  */
 export const usePrevious = <T,>(value: T): T | undefined => {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     ref.current = value;
@@ -178,6 +178,3 @@ export const useDebouncedValue = <T,>(value: T, delay: number = 500): T => {
 
   return debouncedValue;
 };
-
-// Import required hooks
-import { useRef, useEffect } from 'react';

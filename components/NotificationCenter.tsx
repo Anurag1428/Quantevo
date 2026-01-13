@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useLocalStorage } from '@/hooks/useCustomHooks';
 
 interface NotificationCenterProps {
   notifications?: Notification[];
@@ -21,8 +22,21 @@ export const NotificationCenter = ({
   onNotificationDismiss,
 }: NotificationCenterProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dismissedNotifications, setDismissedNotifications] = useLocalStorage<string[]>(
+    'dismissed_notifications',
+    []
+  );
+  const [readNotifications, setReadNotifications] = useLocalStorage<string[]>(
+    'read_notifications',
+    []
+  );
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const visibleNotifications = notifications.filter(
+    (n) => !dismissedNotifications.includes(n.id)
+  );
+  const unreadCount = visibleNotifications.filter(
+    (n) => !readNotifications.includes(n.id) && !n.read
+  ).length;
 
   const getPriorityColor = (priority: AlertPriority) => {
     switch (priority) {
@@ -56,9 +70,23 @@ export const NotificationCenter = ({
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    if (!notification.read && onNotificationRead) {
-      onNotificationRead(notification.id);
+    if (!notification.read && !readNotifications.includes(notification.id)) {
+      setReadNotifications([...readNotifications, notification.id]);
+      onNotificationRead?.(notification.id);
     }
+  };
+
+  const handleDismissNotification = (notificationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDismissedNotifications([...dismissedNotifications, notificationId]);
+    onNotificationDismiss?.(notificationId);
+  };
+
+  const handleMarkAllAsRead = () => {
+    const unreadIds = visibleNotifications
+      .filter((n) => !readNotifications.includes(n.id))
+      .map((n) => n.id);
+    setReadNotifications([...readNotifications, ...unreadIds]);
   };
 
   return (
@@ -76,26 +104,36 @@ export const NotificationCenter = ({
       <PopoverContent className="w-[400px] p-0 bg-gray-900 border-gray-700">
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <h2 className="text-sm font-semibold text-white">Notifications</h2>
-          <a href="/notifications" className="text-xs text-blue-400 hover:text-blue-300">
-            View All
-          </a>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Mark all as read
+              </button>
+            )}
+            <a href="/notifications" className="text-xs text-blue-400 hover:text-blue-300">
+              View All
+            </a>
+          </div>
         </div>
 
         <div className="max-h-[400px] overflow-y-auto">
-          {notifications.length === 0 ? (
+          {visibleNotifications.length === 0 ? (
             <div className="p-6 text-center">
               <Bell className="w-8 h-8 text-gray-600 mx-auto mb-2" />
               <p className="text-sm text-gray-400">No notifications yet</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-700">
-              {notifications.slice(0, 5).map((notification) => (
+              {visibleNotifications.slice(0, 5).map((notification) => (
                 <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`p-3 border-l-4 cursor-pointer hover:bg-gray-800/50 transition-colors ${getPriorityColor(
                     notification.priority
-                  )} ${!notification.read ? 'bg-gray-800/50' : ''}`}
+                  )} ${!readNotifications.includes(notification.id) ? 'bg-gray-800/50' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-4 h-4 mt-1 flex-shrink-0 text-gray-400" />
@@ -115,43 +153,33 @@ export const NotificationCenter = ({
                         {new Date(notification.createdAt).toLocaleTimeString()}
                       </p>
                     </div>
-                    {!notification.read && (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {!readNotifications.includes(notification.id) && !notification.read && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNotificationClick(notification);
+                          }}
+                          className="p-1 hover:bg-gray-700/50 rounded transition-colors"
+                          title="Mark as read"
+                        >
+                          <Check className="w-4 h-4 text-green-400" />
+                        </button>
+                      )}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onNotificationRead?.(notification.id);
-                        }}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        onClick={(e) => handleDismissNotification(notification.id, e)}
+                        className="p-1 hover:bg-gray-700/50 rounded transition-colors"
+                        title="Dismiss"
                       >
-                        <Check className="w-4 h-4 text-blue-400" />
+                        <X className="w-4 h-4 text-gray-400 hover:text-gray-300" />
                       </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNotificationDismiss?.(notification.id);
-                      }}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
-                    >
-                      <X className="w-4 h-4 text-gray-400" />
-                    </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        {notifications.length > 0 && (
-          <div className="p-3 border-t border-gray-700 text-center">
-            <a
-              href="/notifications"
-              className="text-xs text-blue-400 hover:text-blue-300 font-medium"
-            >
-              See all notifications
-            </a>
-          </div>
-        )}
       </PopoverContent>
     </Popover>
   );

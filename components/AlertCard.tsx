@@ -1,8 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { Alert, AlertPriority } from '@/types/alerts';
 import { Trash2, CheckCircle, Clock } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 
 interface AlertCardProps {
   alert: Alert;
@@ -15,8 +25,29 @@ export const AlertCard = ({
   alert,
   onDelete,
   onDismiss,
-  isLoading = false,
 }: AlertCardProps) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDismissing, setIsDismissing] = useState(false);
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(alert.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDismiss = async () => {
+    if (!onDismiss) return;
+    setIsDismissing(true);
+    try {
+      await onDismiss(alert.id);
+    } finally {
+      setIsDismissing(false);
+    }
+  };
   const getPriorityColor = (priority: AlertPriority) => {
     switch (priority) {
       case 'critical':
@@ -128,22 +159,68 @@ export const AlertCard = ({
 
         <div className="flex gap-2 ml-4">
           {alert.status === 'active' && onDismiss && (
-            <Button
-              onClick={() => onDismiss(alert.id)}
-              disabled={isLoading}
-              className="bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30 text-xs"
-            >
-              Dismiss
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={isDismissing}
+                  className="bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30 text-xs"
+                >
+                  {isDismissing ? 'Dismissing...' : 'Dismiss'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-900 border-gray-700">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Dismiss Alert</DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Are you sure you want to dismiss this alert? You can re-enable it later.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
+                    Keep it
+                  </Button>
+                  <Button
+                    onClick={handleDismiss}
+                    disabled={isDismissing}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    {isDismissing ? 'Dismissing...' : 'Dismiss'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
           {onDelete && (
-            <Button
-              onClick={() => onDelete(alert.id)}
-              disabled={isLoading}
-              className="bg-red-600/20 text-red-400 hover:bg-red-600/30 text-xs p-2"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={isDeleting}
+                  className="bg-red-600/20 text-red-400 hover:bg-red-600/30 text-xs p-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-900 border-gray-700">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Delete Alert</DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Are you sure you want to permanently delete this alert? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
       </div>

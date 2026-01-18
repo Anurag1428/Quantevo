@@ -53,6 +53,9 @@ const SignUp = () => {
     <>
       <h1 className="form-title">Sign Up & Personalize</h1>
 
+<div>
+  tried some things for our stratum
+</div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <InputField
           name="fullName"

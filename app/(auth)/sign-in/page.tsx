@@ -11,7 +11,7 @@ import {
 } from "@/lib/constants";
 import { CountrySelectField } from "@/components/forms/CountrySelectField";
 import FooterLink from "@/components/forms/FooterLink";
-import { signUpWithEmail } from "@/lib/actions/auth.actions";
+import { signUpWithEmail, type SignUpFormData } from "@/lib/actions/authaction";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -39,13 +39,15 @@ const SignUp = () => {
   const onSubmit = async (data: SignUpFormData) => {
     try {
       const result = await signUpWithEmail(data);
-      if (result.success) router.push('/');
+      if (result.success) {
+        toast.success('Account created successfully!');
+        router.push('/');
+      } else {
+        toast.error(result.error || 'Sign up failed');
+      }
     } catch (e) {
       console.error(e);
-      toast.error('Sign up failed', {
-        description:
-          e instanceof Error ? e.message : 'Failed to create an account.',
-      });
+      toast.error(e instanceof Error ? e.message : 'Failed to create an account.');
     }
   };
 
@@ -53,9 +55,6 @@ const SignUp = () => {
     <>
       <h1 className="form-title">Sign Up & Personalize</h1>
 
-<div>
-  tried some things for our stratum
-</div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <InputField
           name="fullName"

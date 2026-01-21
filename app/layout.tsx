@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+// trid to implement the file structure for my another project Stratum
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

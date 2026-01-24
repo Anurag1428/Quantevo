@@ -20,6 +20,17 @@ export interface SignInFormData {
   password: string;
 }
 
+export interface FacialLoginData {
+  email: string;
+  faceDescriptor: string;
+}
+
+export interface RegisterFacialData {
+  email: string;
+  faceDescriptor: string;
+  fullName?: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   data?: unknown;

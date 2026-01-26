@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Facial Recognition Profile
+model FacialProfile {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  fullName      String
+  faceDescriptor String  // Base64 encoded Float32Array
+  registeredAt  DateTime @default(now())
+  lastUsedAt    DateTime?
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+  @@index([isActive])
+}
+
+// User Profile (Phase 2+)
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  fullName      String?
+  password      String?  // Only if using email/password auth
+  country       String?
+  investmentGoals String?
+  riskTolerance String?
+  preferredIndustry String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+}
+
+// Trading Strategy
+model Strategy {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  type          String   // 'momentum', 'mean-reversion', etc.
+  parameters    Json?    // Store strategy configuration
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Portfolio
+model Portfolio {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  totalValue    Float
+  totalGain     Float?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}

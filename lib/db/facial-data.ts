@@ -1,84 +1,160 @@
 /**
- * Facial Recognition Database Schema
- * TODO (PHASE 2): Connect to actual database (PostgreSQL, MongoDB, etc.)
- * For now: Using in-memory storage with file persistence
+ * Facial Recognition Database Operations
+ * Uses Prisma ORM with PostgreSQL
  */
 
-export interface FacialProfile {
+import prisma from '@/lib/prisma';
+
+export type FacialProfile = {
   id: string;
   email: string;
   fullName: string;
-  faceDescriptor: string; // Base64 encoded Float32Array
+  faceDescriptor: string;
   registeredAt: Date;
-  lastUsedAt?: Date;
+  lastUsedAt: Date | null;
   isActive: boolean;
-}
-
-// In-memory storage (Phase 1)
-const facialProfiles = new Map<string, FacialProfile>();
-
-/**
- * Phase 1: In-memory operations
- * Phase 2: Replace with database operations
- */
+};
 
 export const facialDB = {
-  // Register a new facial profile
+  // Register a new facial profile (or update existing)
   async registerFace(
     email: string,
     faceDescriptor: string,
     fullName: string
   ): Promise<FacialProfile> {
-    // TODO (Phase 2): Check if email already has a facial profile, update if exists
-    const id = `${email}-${Date.now()}`;
-    const profile: FacialProfile = {
-      id,
-      email,
-      fullName,
-      faceDescriptor,
-      registeredAt: new Date(),
-      isActive: true,
-    };
+    try {
+      const profile = await prisma.facialProfile.upsert({
+        where: { email },
+        update: {
+          faceDescriptor,
+          fullName,
+          isActive: true,
+          updatedAt: new Date(),
+        },
+        create: {
+          email,
+          fullName,
+          faceDescriptor,
+          isActive: true,
+        },
+      });
 
-    facialProfiles.set(email, profile);
-    console.log(`[Facial DB] Registered face for ${email}`);
-    return profile;
+      console.log(`[Facial DB] Registered face for ${email}`);
+      return profile;
+    } catch (error) {
+      console.error('[Facial DB] Error registering face:', error);
+      throw error;
+    }
   },
 
   // Get facial profile by email
   async getFacialProfile(email: string): Promise<FacialProfile | null> {
-    const profile = facialProfiles.get(email) || null;
-    if (!profile) {
-      console.log(`[Facial DB] No facial profile found for ${email}`);
+    try {
+      const profile = await prisma.facialProfile.findUnique({
+        where: { email },
+      });
+
+      if (!profile) {
+        console.log(`[Facial DB] No facial profile found for ${email}`);
+      }
+      return profile;
+    } catch (error) {
+      console.error('[Facial DB] Error getting facial profile:', error);
+      return null;
     }
-    return profile;
   },
 
   // Update last used timestamp
   async updateLastUsed(email: string): Promise<void> {
-    const profile = facialProfiles.get(email);
-    if (profile) {
-      profile.lastUsedAt = new Date();
-      facialProfiles.set(email, profile);
+    try {
+      await prisma.facialProfile.update({
+        where: { email },
+        data: { lastUsedAt: new Date() },
+      });
+    } catch (error) {
+      console.error('[Facial DB] Error updating last used:', error);
     }
   },
 
   // Delete facial profile
   async deleteFace(email: string): Promise<boolean> {
-    const deleted = facialProfiles.delete(email);
-    if (deleted) {
-      console.log(`[Facial DB] Deleted facial profile for ${email}`);
+    try {
+      const result = await prisma.facialProfile.delete({
+        where: { email },
+      });
+
+      if (result) {
+        console.log(`[Facial DB] Deleted facial profile for ${email}`);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('[Facial DB] Error deleting face:', error);
+      return false;
     }
-    return deleted;
   },
 
   // Check if facial profile exists
   async hasFaceRegistered(email: string): Promise<boolean> {
-    return facialProfiles.has(email);
+    try {
+      const profile = await prisma.facialProfile.findUnique({
+        where: { email },
+      });
+      return !!profile;
+    } catch (error) {
+      console.error('[Facial DB] Error checking face registration:', error);
+      return false;
+    }
   },
 
-  // Get all profiles (admin only - TODO: Add auth check)
+  // Get all profiles (admin only)
   async getAllProfiles(): Promise<FacialProfile[]> {
-    return Array.from(facialProfiles.values());
+    try {
+      return await prisma.facialProfile.findMany({
+        orderBy: { registeredAt: 'desc' },
+      });
+    } catch (error) {
+      console.error('[Facial DB] Error getting all profiles:', error);
+      return [];
+    }
+  },
+
+  // Disable facial profile (soft delete)
+  async disableFace(email: string): Promise<boolean> {
+    try {
+      const result = await prisma.facialProfile.update({
+        where: { email },
+        data: { isActive: false },
+      });
+      return !!result;
+    } catch (error) {
+      console.error('[Facial DB] Error disabling face:', error);
+      return false;
+    }
+  },
+
+  // Get stats (for admin dashboard)
+  async getStats() {
+    try {
+      const totalProfiles = await prisma.facialProfile.count();
+      const activeProfiles = await prisma.facialProfile.count({
+        where: { isActive: true },
+      });
+      const recentLogins = await prisma.facialProfile.findMany({
+        where: { lastUsedAt: { not: null } },
+        orderBy: { lastUsedAt: 'desc' },
+        take: 10,
+      });
+
+      return {
+        totalProfiles,
+        activeProfiles,
+        inactiveProfiles: totalProfiles - activeProfiles,
+        recentLogins,
+      };
+    } catch (error) {
+      console.error('[Facial DB] Error getting stats:', error);
+      return null;
+    }
   },
 };

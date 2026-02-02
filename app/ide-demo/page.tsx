@@ -291,6 +291,7 @@ export default function RootLayout({
 export default function IDEPage() {
   const [openFiles, setOpenFiles] = useState<EditorFile[]>(INITIAL_EDITOR_FILES);
   const [activeFileId, setActiveFileId] = useState(INITIAL_EDITOR_FILES[0].id);
+  const [fileTree, setFileTree] = useState<FileNode>(SAMPLE_FILE_TREE);
 
   const handleFileSelect = (file: FileNode) => {
     if (file.type === 'file') {
@@ -313,13 +314,127 @@ export default function IDEPage() {
     }
   };
 
+  const findNodeById = (node: FileNode, id: string): FileNode | null => {
+    if (node.id === id) return node;
+    if (node.children) {
+      for (const child of node.children) {
+        const result = findNodeById(child, id);
+        if (result) return result;
+      }
+    }
+    return null;
+  };
+
+  const handleCreateFile = (parentId: string, name: string) => {
+    const newFileId = `file-${Date.now()}`;
+    const newFile: FileNode = {
+      id: newFileId,
+      name: name || 'untitled.ts',
+      type: 'file',
+      language: 'typescript',
+      content: '',
+    };
+
+    const updateTree = (node: FileNode): FileNode => {
+      if (node.id === parentId) {
+        return {
+          ...node,
+          children: [...(node.children || []), newFile],
+        };
+      }
+      if (node.children) {
+        return {
+          ...node,
+          children: node.children.map(updateTree),
+        };
+      }
+      return node;
+    };
+
+    setFileTree(updateTree(fileTree));
+  };
+
+  const handleCreateFolder = (parentId: string, name: string) => {
+    const newFolderId = `folder-${Date.now()}`;
+    const newFolder: FileNode = {
+      id: newFolderId,
+      name: name || 'new-folder',
+      type: 'folder',
+      children: [],
+    };
+
+    const updateTree = (node: FileNode): FileNode => {
+      if (node.id === parentId) {
+        return {
+          ...node,
+          children: [...(node.children || []), newFolder],
+        };
+      }
+      if (node.children) {
+        return {
+          ...node,
+          children: node.children.map(updateTree),
+        };
+      }
+      return node;
+    };
+
+    setFileTree(updateTree(fileTree));
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    const deleteNode = (node: FileNode): FileNode => {
+      if (node.children) {
+        return {
+          ...node,
+          children: node.children
+            .filter(child => child.id !== itemId)
+            .map(deleteNode),
+        };
+      }
+      return node;
+    };
+
+    setFileTree(deleteNode(fileTree));
+    setOpenFiles(openFiles.filter(f => f.id !== itemId));
+  };
+
+  const handleRenameItem = (itemId: string, newName: string) => {
+    const renameNode = (node: FileNode): FileNode => {
+      if (node.id === itemId) {
+        return {
+          ...node,
+          name: newName,
+        };
+      }
+      if (node.children) {
+        return {
+          ...node,
+          children: node.children.map(renameNode),
+        };
+      }
+      return node;
+    };
+
+    setFileTree(renameNode(fileTree));
+    
+    // Update open files if renaming an open file
+    setOpenFiles(openFiles.map(f => 
+      f.id === itemId ? { ...f, name: newName } : f
+    ));
+  };
+
   return (
     <div className="flex h-screen bg-gray-900">
       {/* File Explorer Sidebar */}
       <div className="w-80 border-r border-gray-700 overflow-hidden">
         <FileExplorer
-          fileTree={SAMPLE_FILE_TREE}
+          fileTree={fileTree}
           onFileSelect={handleFileSelect}
+          onCreateFile={handleCreateFile}
+          onCreateFolder={handleCreateFolder}
+          onDeleteItem={handleDeleteItem}
+          onRenameItem={handleRenameItem}
           theme="dark"
         />
       </div>

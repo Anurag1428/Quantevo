@@ -30,6 +30,7 @@ interface FileExplorerProps {
   onCreateFile?: (parentId: string, name: string) => void;
   onCreateFolder?: (parentId: string, name: string) => void;
   onDeleteItem?: (itemId: string) => void;
+  onRenameItem?: (itemId: string, newName: string) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -63,6 +64,7 @@ interface TreeItemProps {
   onCreateFile?: (parentId: string) => void;
   onCreateFolder?: (parentId: string) => void;
   onDelete?: (itemId: string) => void;
+  onRename?: (itemId: string, newName: string) => void;
   expandedFolders: Set<string>;
   onToggleExpand: (nodeId: string) => void;
   selectedFileId?: string;
@@ -76,6 +78,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
   onCreateFile,
   onCreateFolder,
   onDelete,
+  onRename,
   expandedFolders,
   onToggleExpand,
   selectedFileId,
@@ -101,6 +104,8 @@ const TreeItem: React.FC<TreeItemProps> = ({
 
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(node.name);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -183,6 +188,16 @@ const TreeItem: React.FC<TreeItemProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  setIsRenaming(true);
+                  setShowContextMenu(false);
+                }}
+                className="w-full text-left px-3 py-1 text-sm text-gray-300 hover:bg-gray-700"
+              >
+                Rename
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   onDelete?.(node.id);
                   setShowContextMenu(false);
                 }}
@@ -193,7 +208,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
             </div>
           )}
 
-          {isExpanded && node.children && (
+          {isExpanded && node.children && !isRenaming && (
             <div>
               {node.children.map((child) => (
                 <TreeItem
@@ -204,6 +219,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
                   onCreateFile={onCreateFile}
                   onCreateFolder={onCreateFolder}
                   onDelete={onDelete}
+                  onRename={onRename}
                   expandedFolders={expandedFolders}
                   onToggleExpand={onToggleExpand}
                   selectedFileId={selectedFileId}
@@ -253,6 +269,16 @@ const TreeItem: React.FC<TreeItemProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  setIsRenaming(true);
+                  setShowContextMenu(false);
+                }}
+                className="w-full text-left px-3 py-1 text-sm text-gray-300 hover:bg-gray-700"
+              >
+                Rename
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   onDelete?.(node.id);
                   setShowContextMenu(false);
                 }}
@@ -260,6 +286,38 @@ const TreeItem: React.FC<TreeItemProps> = ({
               >
                 Delete
               </button>
+            </div>
+          )}
+
+          {isRenaming && (
+            <div
+              className="absolute inset-0 flex items-center gap-2 px-2 bg-gray-700 rounded"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                autoFocus
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onBlur={() => {
+                  if (newName && newName !== node.name) {
+                    onRename?.(node.id, newName);
+                  }
+                  setIsRenaming(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (newName && newName !== node.name) {
+                      onRename?.(node.id, newName);
+                    }
+                    setIsRenaming(false);
+                  } else if (e.key === 'Escape') {
+                    setNewName(node.name);
+                    setIsRenaming(false);
+                  }
+                }}
+                className="flex-1 bg-gray-600 text-white px-2 py-1 rounded text-sm outline-none border border-blue-500"
+              />
             </div>
           )}
         </div>
@@ -274,6 +332,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   onCreateFile,
   onCreateFolder,
   onDeleteItem,
+  onRenameItem,
   theme = 'dark',
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
@@ -356,6 +415,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
           onCreateFile={onCreateFile}
           onCreateFolder={onCreateFolder}
           onDelete={onDeleteItem}
+          onRename={onRenameItem}
           expandedFolders={expandedFolders}
           onToggleExpand={toggleExpand}
           selectedFileId={selectedFileId}

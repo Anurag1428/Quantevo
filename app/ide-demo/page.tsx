@@ -1,5 +1,5 @@
 'use client';
-
+//played with codemirror
 import React, { useState } from 'react';
 import FileExplorer from '@/components/FileExplorer';
 import IDEEditor from '@/components/IDEEditor';
